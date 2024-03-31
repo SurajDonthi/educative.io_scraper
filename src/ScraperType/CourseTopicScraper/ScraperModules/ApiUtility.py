@@ -182,13 +182,13 @@ class ApiUtility:
             except:
                 self.logger.info("Page Loading Issue, pressing ESC to stop page load")
                 self.browser.execute_script("window.stop();")
-            courseTypeSelector = f"//a[contains(@href, '/{topicUrl.split('/')[3]}/')]/span[contains(text(), 'Home')]/.."
+            courseTypeSelector = f"//nav//a[contains(@href, '/{topicUrl.split('/')[3]}/')]/span/.."
             self.logger.info(f"Course Type Selector: {courseTypeSelector}")
             try:
                 WebDriverWait(self.browser, self.timeout).until(
                     EC.presence_of_element_located((By.XPATH, courseTypeSelector)))
             except:
-                courseTypeSelector = "//a[contains(@href, '/collection/')]/span[contains(text(), 'Home')]/.."
+                courseTypeSelector = "//nav//a[contains(@href, '/collection/')]/span/.."
                 self.logger.info(f"New Course Type Selector: {courseTypeSelector}")
                 WebDriverWait(self.browser, self.timeout).until(
                     EC.presence_of_element_located((By.XPATH, courseTypeSelector)))

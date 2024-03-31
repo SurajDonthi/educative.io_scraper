@@ -10,6 +10,7 @@ from tkinter import ttk
 import psutil
 from PIL import Image, ImageTk
 
+from src.Main.UpdateTxtFileFromLog import UpdateTxtFileFromLog
 from src.Common.Constants import constants
 from src.Logging.Logger import Logger
 from src.Main.LoginAccount import LoginAccount
@@ -41,6 +42,8 @@ class HomeScreen:
         self.userDataDirVar = tk.StringVar()
         self.headlessVar = tk.BooleanVar(value=False)
         self.ucdriverVar = tk.BooleanVar(value=False)
+        self.autoResumeScraper = tk.BooleanVar(value=False)
+        self.autoFixTextFile = tk.BooleanVar(value=False)
         self.courseUrlsFilePathVar = tk.StringVar()
         self.saveDirectoryVar = tk.StringVar()
         self.isProxyVar = tk.BooleanVar(value=True)
@@ -69,6 +72,9 @@ class HomeScreen:
         self.loadDefaultConfig()
         self.logLevelDescVar = tk.StringVar(value=self.configJson['logger'])
         self.logDescriptionLabel = None
+        self.checkButtonStateVar = tk.StringVar()
+        self.updateTextFromLog = UpdateTxtFileFromLog()
+        self.clickedByUser = False
 
 
     def onConfigChange(self, *args):
@@ -91,6 +97,19 @@ class HomeScreen:
                 self.fileTypeCombobox['values'] = self.fileTypes[:2]
             else:
                 self.fileTypeCombobox['values'] = self.fileTypes[1:]
+    
+
+    def trackUserClick(self, event):
+        self.clickedByUser = True
+
+
+    def autoStartScraperOnConditions(self):
+        if self.startScraperButton['state'] == 'normal' and \
+            not self.updateTextFromLog.getBlockScraper() and \
+            self.configJson['autoresume']:
+            if self.updateTextFromLog.updateTextFileFromLogMain():
+                self.startScraperButton.invoke()
+                self.clickedByUser = False
 
 
     def createHomeScreen(self, version):
@@ -156,7 +175,11 @@ class HomeScreen:
         proxyLabel = tk.Label(checkboxesFrame, text="Format: Host:Port")
         proxyLabel.grid(row=len(optionCheckboxes)-1, column=2, sticky="w", padx=2, pady=0)
         ucdriverCheckbox = tk.Checkbutton(checkboxesFrame, text="SeleniumBase(uc mode)", variable=self.ucdriverVar, wraplength=400, anchor="w")
-        ucdriverCheckbox.grid(row=len(optionCheckboxes)-2, column=1, sticky="w", padx=25, pady=2)
+        ucdriverCheckbox.grid(row=len(optionCheckboxes)-2, column=1, sticky="w", padx=(25,0), pady=2)
+        self.autoResumeScraperCheckbox = tk.Checkbutton(checkboxesFrame, text="Auto Resume Scraper", variable=self.autoResumeScraper, wraplength=400, anchor="w")
+        self.autoResumeScraperCheckbox.grid(row=len(optionCheckboxes)-2, column=2, sticky="w", padx=(0,0), pady=2)
+        self.autoFixTextFileCheckbox = tk.Checkbutton(checkboxesFrame, text="Auto Fix Url File", variable=self.autoFixTextFile, wraplength=400, anchor="w")
+        self.autoFixTextFileCheckbox.grid(row=len(optionCheckboxes)-2, column=3, sticky="w", padx=(15,0), pady=2)
 
         scraperOptionFrame.grid(row=0, column=0, padx=0, pady=3, sticky="nw")
         checkboxesFrame.grid(row=1, column=0, padx=0, pady=3, sticky="nw")
@@ -207,6 +230,9 @@ class HomeScreen:
                                             width=20)
         self.startScraperButton = tk.Button(buttonScraperFrame, text="Start Scraper", command=self.startScraper,
                                             width=19)
+        self.checkButtonStateVar.set(self.startScraperButton['state'])
+        self.checkButtonStateVar.trace("w", lambda *args: self.autoStartScraperOnConditions())
+        self.startScraperButton.bind("<Button-1>", self.trackUserClick)
         self.terminateProcessButton = tk.Button(buttonScraperFrame, text="Stop Scraper/Close Browser",
                                                 command=self.terminateProcess,
                                                 width=20, state="disabled")
@@ -300,6 +326,8 @@ class HomeScreen:
         self.scraperTypeVar.set(self.config["scraperType"])
         self.scrapingMethodVar.set(self.config["scrapingMethod"])
         self.ucdriverVar.set(self.config["ucdriver"])
+        self.autoResumeScraper.set(self.config["autoresume"])
+        self.autoFixTextFile.set(self.config["autofixtextfile"])
 
 
     def createConfigJson(self):
@@ -315,15 +343,22 @@ class HomeScreen:
             "scrapingMethod": self.scrapingMethodVar.get(),
             'fileType': self.fileTypeVar.get(),
             'ucdriver': self.ucdriverVar.get(),
-            'binaryversion': self.config["binaryversion"]
+            'binaryversion': self.config["binaryversion"],
+            'autoresume': self.autoResumeScraper.get(),
+            'autofixtextfile': self.autoFixTextFile.get()
         }
 
 
     def startScraper(self):
         self.logger.debug("startScraper called")
         self.createConfigJson()
+        if self.clickedByUser:
+            self.updateTextFromLog.setBlockScraper(False)
+            self.updateTextFromLog.resetLastTopicUrlsList()
+            if self.configJson['autofixtextfile'] and not self.updateTextFromLog.updateTextFileFromLogMain():
+                self.logger.info("No URL found in log file. Starting Scraper from first url...")
         startScraper = StartScraper()
-        self.process = multiprocessing.Process(target=startScraper.start, args=(self.configJson,))
+        self.process = multiprocessing.Process(target=startScraper.start, args=(self.configJson, self.updateTextFromLog, ))
         self.process.start()
         self.processes.append(self.process)
         self.updateButtonState()
@@ -333,6 +368,7 @@ class HomeScreen:
     def loginAccount(self):
         self.logger.debug("loginAccount called")
         self.createConfigJson()
+        self.updateTextFromLog.setBlockScraper(True)
         loginAccount = LoginAccount()
         self.process = multiprocessing.Process(target=loginAccount.start, args=(self.configJson,))
         self.process.start()
@@ -344,6 +380,7 @@ class HomeScreen:
     def terminateProcess(self):
         self.logger.debug("terminateProcess called")
         self.logger.info("Terminating Process...")
+        self.updateTextFromLog.setBlockScraper(True)
         browserUtil = BrowserUtility(self.configJson)
         for process in self.processes:
             try:
@@ -364,6 +401,7 @@ class HomeScreen:
         else:
             self.EnableDisableButtons("normal")
             self.terminateProcessButton.config(state="disabled")
+        self.checkButtonStateVar.set(self.startScraperButton['state'])
         self.app.after(1000, self.updateButtonState)
 
 
@@ -379,6 +417,7 @@ class HomeScreen:
         self.logger.info(f"""  Starting Chrome Driver...
                                 Path:  {constants.chromeDriverPath}
                           """)
+        self.updateTextFromLog.setBlockScraper(True)
         StartChromedriver().loadChromeDriver()
         self.logger.debug("startChromeDriver completed")
 
@@ -416,6 +455,7 @@ class HomeScreen:
 
 
     def downloadChromeDriver(self):
+        self.updateTextFromLog.setBlockScraper(True)
         self.EnableDisableButtons("disabled")
         downloadThread = threading.Thread(target=lambda: self.downloadUtil.downloadChromeDriver(self.app,
                                                                                                 self.progressVar,
@@ -425,6 +465,7 @@ class HomeScreen:
 
 
     def downloadChromeBinary(self):
+        self.updateTextFromLog.setBlockScraper(True)
         self.EnableDisableButtons("disabled")
         downloadThread = threading.Thread(target=lambda: self.downloadUtil.downloadChromeBinary(self.app,
                                                                                                 self.progressVar,

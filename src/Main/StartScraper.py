@@ -1,3 +1,4 @@
+from src.Main.UpdateTxtFileFromLog import UpdateTxtFileFromLog
 from src.Logging.Logger import Logger
 from src.Main.MailNotify import MailNotify
 from src.ScraperType.AllCourseUrlsScraper.AllCourseUrlsScraperMain import AllCourseUrlsScraper
@@ -10,7 +11,7 @@ class StartScraper:
         self.mailNotify = MailNotify()
 
 
-    def start(self, configJson):
+    def start(self, configJson, updateTextFromLog: UpdateTxtFileFromLog):
         self.logger = Logger(configJson, "StartScraper").logger
         self.logger.info("""StartScraper Initiated...
                             To Terminate, Click on Stop ScraperType Button
@@ -21,6 +22,7 @@ class StartScraper:
             else:
                 CourseTopicScraper(configJson).start()
             self.mailNotify.send_email("Scraping Complete")
+            updateTextFromLog.setBlockScraper(True)
         except KeyboardInterrupt:
             self.logger.error("Keyboard Interrupt")
         except Exception as e:
