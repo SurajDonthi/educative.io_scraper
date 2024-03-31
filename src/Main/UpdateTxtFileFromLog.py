@@ -25,8 +25,9 @@ class UpdateTxtFileFromLog:
         self.config = None
         self.logger = None
         self.lastTopicUrlsList = []
-        self.blockScraper = False
         self.loadConfigAndLogger()
+        self.setBlockScraper(False)
+
 
     def loadConfigAndLogger(self):
         self.config = self.configUtil.loadConfig()['ScraperConfig']
@@ -34,11 +35,13 @@ class UpdateTxtFileFromLog:
 
 
     def getBlockScraper(self):
-        return self.blockScraper
+        self.loadConfigAndLogger()
+        return self.config['blockscraper'] == 'True'
     
 
     def setBlockScraper(self, blockScraper):
-        self.blockScraper = blockScraper
+        self.config['blockscraper'] = str(blockScraper)
+        self.configUtil.updateConfig(self.config, 'ScraperConfig')
 
     
     def resetLastTopicUrlsList(self):
@@ -105,7 +108,7 @@ class UpdateTxtFileFromLog:
             message = f"Failed to start scraping 3 times for {lastTopicUrl}. Exiting..."
             self.logger.error(message)
             self.mailNotify.send_email(message)
-            self.blockScraper = True
+            self.setBlockScraper(True)
             return False
         return True
 

@@ -107,7 +107,6 @@ class HomeScreen:
         if self.startScraperButton['state'] == 'normal' and \
             not self.updateTextFromLog.getBlockScraper() and \
             self.configJson['autoresume']:
-
             if self.updateTextFromLog.updateTextFileFromLogMain():
                 self.startScraperButton.invoke()
                 self.clickedByUser = False
@@ -359,7 +358,7 @@ class HomeScreen:
             if self.configJson['autofixtextfile'] and not self.updateTextFromLog.updateTextFileFromLogMain():
                 self.logger.info("No URL found in log file. Starting Scraper from first url...")
         startScraper = StartScraper()
-        self.process = multiprocessing.Process(target=startScraper.start, args=(self.configJson,))
+        self.process = multiprocessing.Process(target=startScraper.start, args=(self.configJson, self.updateTextFromLog, ))
         self.process.start()
         self.processes.append(self.process)
         self.updateButtonState()
