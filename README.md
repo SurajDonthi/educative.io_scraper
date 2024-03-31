@@ -15,14 +15,19 @@ I developed it solely for research purposes and take no responsibility for its m
 Repository Version: v3.6.5 (Recommended)
 Master Branch: v3-master</code></pre>
 ```
-Note: 1. If you have updated to v3.5.7+, 
-      -  Undetected driver replaced by SeleniumBase (Bypass Cloudflare Turnstile)
-      -  Run with --install arg again OR manually clean install
-      -  Delete the old UserDataDir (v3.5.5+)
-      -  No existing Chrome browser should be running in the background (v3.4.2+)     
-      -  Redownload Chrome Binary and Chrome driver. (v3.4.2+)
-      -  If Undetected/SeleniumBase does not work then use default webdriver. (v3.4.2+)
-      2. Send a mail notification status, Setup here: /src/Main/MailNotify.py
+1. Updates Information
+-  AutoFixUrl and AutoResume were added (v3.6.5+)
+      * AutoFixUrl: The urls text file will be automatically updated based on the last topic URL from the Log File.
+        If a manual edit was done on the text file then consider unchecking this option.
+      * AutoResume (Recommended): Retries 3/4 times if there is any error occurs for a specific URL.
+        If it still fails, then consider checking the log for more details. 
+-  Undetected driver replaced by SeleniumBase (Bypass Cloudflare Turnstile) (v3.5.7+)
+-  Run with --install arg again OR manually clean install (v3.5.7+)
+-  Delete the old UserDataDir (v3.5.5+)
+-  No existing Chrome browser should be running in the background (v3.4.2+)     
+-  Redownload Chrome Binary and Chrome driver. (v3.4.2+)
+-  If Undetected/SeleniumBase does not work then UNCHECK and use default webdriver. (v3.4.2+)
+2. Send a mail notification status, Setup here: /src/Main/MailNotify.py
 ```
 ###                                
 
