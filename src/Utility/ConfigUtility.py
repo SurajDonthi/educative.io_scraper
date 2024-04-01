@@ -9,6 +9,7 @@ class ConfigUtility:
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.fileUtil = FileUtility()
+        self.loadConfig()
 
 
     def loadConfig(self, path=constants.defaultConfigPath):

@@ -73,12 +73,13 @@ class HomeScreen:
         self.logLevelDescVar = tk.StringVar(value=self.configJson['logger'])
         self.logDescriptionLabel = None
         self.checkButtonStateVar = tk.StringVar()
-        self.updateTextFromLog = UpdateTxtFileFromLog()
         self.clickedByUser = False
+        self.updateTextFromLog = UpdateTxtFileFromLog(self.configJson)
 
 
     def onConfigChange(self, *args):
         self.createConfigJson()
+        self.updateTextFromLog = UpdateTxtFileFromLog(self.configJson)
         self.logger = Logger(self.configJson, "HomeScreen").logger
         self.logLevelDescVar.set(self.configJson['logger'])
         self.logDescriptionLabel.config(text=self.logLevelDesc[self.logLevelDescVar.get()])
@@ -345,7 +346,8 @@ class HomeScreen:
             'ucdriver': self.ucdriverVar.get(),
             'binaryversion': self.config["binaryversion"],
             'autoresume': self.autoResumeScraper.get(),
-            'autofixtextfile': self.autoFixTextFile.get()
+            'autofixtextfile': self.autoFixTextFile.get(),
+            'blockscraper': self.config["blockscraper"]
         }
 
 
@@ -440,6 +442,7 @@ class HomeScreen:
     def updateConfig(self):
         self.logger.debug("updateConfig called")
         self.createConfigJson()
+        self.updateTextFromLog = UpdateTxtFileFromLog(self.configJson)
         self.configUtil.updateConfig(self.configJson, 'ScraperConfig', self.configFilePath.get())
         self.logger.info(f"Updated Config with filePath: {self.configFilePath.get()}")
 

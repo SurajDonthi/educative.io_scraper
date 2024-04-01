@@ -18,24 +18,18 @@ import shutil
 
 
 class UpdateTxtFileFromLog:
-    def __init__(self):
+    def __init__(self, configJson):
         self.configUtil = ConfigUtility()
         self.fileUtil = FileUtility()
         self.mailNotify = MailNotify()
-        self.config = None
+        self.config = configJson
         self.logger = None
         self.lastTopicUrlsList = []
-        self.loadConfigAndLogger()
+        self.logger = Logger(configJson, "UpdateTxtFileFromLog").logger
         self.setBlockScraper(False)
 
 
-    def loadConfigAndLogger(self):
-        self.config = self.configUtil.loadConfig()['ScraperConfig']
-        self.logger = Logger(self.config, "UpdateTxtFileFromLog").logger
-
-
     def getBlockScraper(self):
-        self.loadConfigAndLogger()
         return self.config['blockscraper'] == 'True'
     
 
@@ -52,7 +46,7 @@ class UpdateTxtFileFromLog:
         try:
             logFilePath = os.path.join(constants.ROOT_DIR, 'EducativeScraper.log')
             if os.path.exists(constants.defaultConfigPath):
-                logFilePath = os.path.join(self.config['savedirectory'], 'EducativeScraper.log')
+                logFilePath = os.path.join(self.config['saveDirectory'], 'EducativeScraper.log')
 
             self.logger.info(f"Opening log file: {logFilePath}")
             fileData = self.fileUtil.loadTextFileNonStrip(logFilePath)
@@ -72,7 +66,11 @@ class UpdateTxtFileFromLog:
                     return httpsPattern.search(match.group(1)).group(0)
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
-            raise Exception(f"getLastTopicUrl: {lineNumber}: {e}")
+            message = f"getLastTopicUrl: {lineNumber}: {e} Last Topic URL is probably blank space. Exiting..."
+            self.setBlockScraper(True)
+            self.logger.error(message)
+            self.mailNotify.send_email(message)
+            return None
 
 
     def getRefactoredUrl(self, url):
@@ -115,9 +113,10 @@ class UpdateTxtFileFromLog:
 
     def updateTextFileFromLogMain(self):
         try:
-            self.loadConfigAndLogger()
             logFileData = self.getLogFileData()
             lastTopicUrl = self.getLastTopicUrl(logFileData)
+            if lastTopicUrl is None:
+                return False
             if "?showContent=true" not in lastTopicUrl:
                 lastTopicUrl += "?showContent=true"
             self.logger.info(f"Last Topic URL: {lastTopicUrl}")
@@ -126,7 +125,7 @@ class UpdateTxtFileFromLog:
             self.lastTopicUrlsList.append(lastTopicUrl)
             refactoredUrl = self.getRefactoredUrl(lastTopicUrl)
             self.logger.info(f"Refactored URL: {refactoredUrl}")
-            urlsTextFilePath = self.config['courseurlsfilepath']
+            urlsTextFilePath = self.config['courseUrlsFilePath']
             self.logger.info(f"Updating Urls Text File: {urlsTextFilePath}")
             return self.updateUrlsFile(urlsTextFilePath, refactoredUrl, lastTopicUrl)
         except Exception as e:
