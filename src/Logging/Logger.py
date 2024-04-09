@@ -1,6 +1,8 @@
 import logging
 import os
 
+from src.Utility.FileUtility import FileUtility
+
 
 class Logger:
     def __init__(self, configJson, logName):
@@ -9,6 +11,7 @@ class Logger:
         self.logLevel = configJson["logger"]
         self.logger = logging.getLogger(logName)
         self.logger.setLevel(self.logLevel)
+        self.fileUtils = FileUtility()
         self.setupHandlers()
 
 
@@ -23,7 +26,9 @@ class Logger:
         for handler in self.logger.handlers:
             if isinstance(handler, logging.FileHandler):
                 self.logger.removeHandler(handler)
-
+        
+        if self.configJson["saveDirectory"] != "":
+            self.fileUtils.createFolderIfNotExists(self.configJson["saveDirectory"])
         if not any(isinstance(handler, logging.FileHandler) for handler in self.logger.handlers):
             fileHandler = logging.FileHandler(self.logFilePath)
             fileHandler.setFormatter(formatter)
