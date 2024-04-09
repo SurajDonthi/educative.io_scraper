@@ -442,7 +442,6 @@ class HomeScreen:
     def updateConfig(self):
         self.logger.debug("updateConfig called")
         self.createConfigJson()
-        self.updateTextFromLog = UpdateTxtFileFromLog(self.configJson)
         self.configUtil.updateConfig(self.configJson, 'ScraperConfig', self.configFilePath.get())
         self.logger.info(f"Updated Config with filePath: {self.configFilePath.get()}")
 

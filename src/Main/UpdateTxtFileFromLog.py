@@ -26,10 +26,10 @@ class UpdateTxtFileFromLog:
         self.logger = None
         self.lastTopicUrlsList = []
         self.logger = Logger(configJson, "UpdateTxtFileFromLog").logger
-        self.setBlockScraper(False)
 
 
     def getBlockScraper(self):
+        self.config = self.configUtil.loadConfig()['ScraperConfig']
         return self.config['blockscraper'] == 'True'
     
 
