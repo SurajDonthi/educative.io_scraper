@@ -60,8 +60,9 @@ class SingleFileUtility:
                 targetElement.appendChild(scriptTag.cloneNode(true));
                 var frames = doc.querySelectorAll("frame, iframe");
                 frames.forEach(frame => {
-                    if (frame.contentDocument) {
-                        injectScriptToHTML(scriptTag, frame.contentDocument);
+                    var frameDocument = frame.contentDocument || frame.contentWindow.document;
+                    if (frameDocument) {
+                        injectScriptToHTML(scriptTag, frameDocument);
                     }
                 });
             }

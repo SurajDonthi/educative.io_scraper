@@ -355,6 +355,7 @@ class HomeScreen:
         self.logger.debug("startScraper called")
         self.createConfigJson()
         if self.clickedByUser:
+            self.updateTextFromLog.setConfigExt(self.configJson)
             self.updateTextFromLog.setBlockScraper(False)
             self.updateTextFromLog.resetLastTopicUrlsList()
             if self.configJson['autofixtextfile'] and not self.updateTextFromLog.updateTextFileFromLogMain():
@@ -370,6 +371,7 @@ class HomeScreen:
     def loginAccount(self):
         self.logger.debug("loginAccount called")
         self.createConfigJson()
+        self.updateTextFromLog.setConfigExt(self.configJson)
         self.updateTextFromLog.setBlockScraper(True)
         loginAccount = LoginAccount()
         self.process = multiprocessing.Process(target=loginAccount.start, args=(self.configJson,))
@@ -382,6 +384,7 @@ class HomeScreen:
     def terminateProcess(self):
         self.logger.debug("terminateProcess called")
         self.logger.info("Terminating Process...")
+        self.updateTextFromLog.setConfigExt(self.configJson)
         self.updateTextFromLog.setBlockScraper(True)
         browserUtil = BrowserUtility(self.configJson)
         for process in self.processes:
@@ -419,6 +422,7 @@ class HomeScreen:
         self.logger.info(f"""  Starting Chrome Driver...
                                 Path:  {constants.chromeDriverPath}
                           """)
+        self.updateTextFromLog.setConfigExt(self.configJson)
         self.updateTextFromLog.setBlockScraper(True)
         StartChromedriver().loadChromeDriver()
         self.logger.debug("startChromeDriver completed")
@@ -457,6 +461,7 @@ class HomeScreen:
 
 
     def downloadChromeDriver(self):
+        self.updateTextFromLog.setConfigExt(self.configJson)
         self.updateTextFromLog.setBlockScraper(True)
         self.EnableDisableButtons("disabled")
         downloadThread = threading.Thread(target=lambda: self.downloadUtil.downloadChromeDriver(self.app,
@@ -467,6 +472,7 @@ class HomeScreen:
 
 
     def downloadChromeBinary(self):
+        self.updateTextFromLog.setConfigExt(self.configJson)
         self.updateTextFromLog.setBlockScraper(True)
         self.EnableDisableButtons("disabled")
         downloadThread = threading.Thread(target=lambda: self.downloadUtil.downloadChromeBinary(self.app,

@@ -31,7 +31,11 @@ class UpdateTxtFileFromLog:
     def getBlockScraper(self):
         self.config = self.configUtil.loadConfig()['ScraperConfig']
         return self.config['blockscraper'] == 'True'
-    
+
+
+    def setConfigExt(self, configJson):
+        self.config = configJson
+
 
     def setBlockScraper(self, blockScraper):
         self.config['blockscraper'] = str(blockScraper)
