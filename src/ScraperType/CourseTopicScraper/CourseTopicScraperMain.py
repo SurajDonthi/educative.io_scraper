@@ -133,7 +133,7 @@ class CourseTopicScraper:
                     self.logger.info("Page Loading Issue, pressing ESC to stop page load")
                     self.browser.execute_script("window.stop();")
                 if self.seleniumBasicUtils.waitWebdriverToLoadTopicPage():
-                    self.browser.execute_script("window.stop();")
+                    # self.browser.execute_script("window.stop();")
                     break
                 retries += 1
                 if retries == 3:
