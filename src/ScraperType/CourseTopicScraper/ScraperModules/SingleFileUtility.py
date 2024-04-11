@@ -55,16 +55,16 @@ class SingleFileUtility:
         try:
             self.logger.info("Injecting important scripts")
             injectImportantScriptsJsScript = """
-            function injectScriptToHTML(scriptTag, location) {
-                if (location === "iframe") {
-                    var frames = document.querySelectorAll('frame, iframe');
-                    frames.forEach(frame => {
-                            var frameDocument = frame.contentDocument || frame.contentWindow.document;
-                            var targetElement = frameDocument.head || frameDocument.body || frameDocument.documentElement;
-                            targetElement.appendChild(scriptTag.cloneNode(true));
-                    });
-                }
-                document.head.appendChild(scriptTag);
+            function injectScriptToHTML(scriptTag, doc = document) {
+                var targetElement = doc.body || doc.documentElement;
+                targetElement.appendChild(scriptTag.cloneNode(true));
+                var frames = doc.querySelectorAll("frame, iframe");
+                frames.forEach(frame => {
+                    var frameDocument = frame.contentDocument || frame.contentWindow.document;
+                    if (frameDocument) {
+                        injectScriptToHTML(scriptTag, frameDocument);
+                    }
+                });
             }
                              
             function createScriptTagFromURL(url) {
@@ -98,12 +98,7 @@ class SingleFileUtility:
                 createScriptTagFromURL(fullUrls[i])
                     .then(scriptTag => {
                         if (scriptTag) {
-                            if(i === 1 || i === 2){
-                                injectScriptToHTML(scriptTag, "iframe") 
-                            }
-                            else {
-                                injectScriptToHTML(scriptTag, "")
-                            }
+                            injectScriptToHTML(scriptTag);
                         }
                     });
             }
