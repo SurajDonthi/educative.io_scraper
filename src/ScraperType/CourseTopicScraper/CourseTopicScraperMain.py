@@ -126,15 +126,21 @@ class CourseTopicScraper:
                 self.logger.info(f"Trying to load webpage {retries} of 2")
                 try:
                     '''Creates new tab and closes the older tab'''
-                    self.browser.execute_cdp_cmd("Target.createTarget", {"url": "about:blank"})
+                    # self.browser.execute_cdp_cmd("Target.createTarget", {"url": "about:blank"})
+                    originalWindow = self.browser.current_window_handle
+                    self.browser.switch_to.new_window('tab')
+                    newWindow = self.browser.current_window_handle
+                    self.logger.info(f"{originalWindow} {newWindow}")
+
+                    self.browser.switch_to.window(originalWindow)
                     self.browser.close()
-                    self.browser.switch_to.window(self.browser.window_handles[-1])
+
+                    self.browser.switch_to.window(newWindow)
                     self.browser.get(topicUrl)
                 except:
                     self.logger.info("Page Loading Issue, pressing ESC to stop page load")
                     self.browser.execute_script("window.stop();")
                 if self.seleniumBasicUtils.waitWebdriverToLoadTopicPage():
-                    # self.browser.execute_script("window.stop();")
                     break
                 retries += 1
                 if retries == 3:
