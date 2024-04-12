@@ -126,9 +126,10 @@ class CourseTopicScraper:
                 self.logger.info(f"Trying to load webpage {retries} of 2")
                 try:
                     '''Creates new tab and closes the older tab'''
-                    self.browser.execute_cdp_cmd("Target.createTarget", {"url": topicUrl})
+                    self.browser.execute_cdp_cmd("Target.createTarget", {"url": "about:blank"})
                     self.browser.close()
                     self.browser.switch_to.window(self.browser.window_handles[-1])
+                    self.browser.get(topicUrl)
                 except:
                     self.logger.info("Page Loading Issue, pressing ESC to stop page load")
                     self.browser.execute_script("window.stop();")
