@@ -130,7 +130,7 @@ class CourseTopicScraper:
                     originalWindow = self.browser.current_window_handle
                     self.browser.switch_to.new_window('tab')
                     newWindow = self.browser.current_window_handle
-                    self.logger.info(originalWindow, newWindow)
+                    self.logger.info(f"{originalWindow} {newWindow}")
 
                     self.browser.switch_to.window(originalWindow)
                     self.browser.close()
