@@ -114,8 +114,7 @@ class SingleFileUtility:
 
     def getSingleFileHtml(self):
         htmlPageData = None
-        singleFileJsScript = """
-        const { content, title, filename } = await singlefile.getPageData({
+        singleFileJsScript = """singlefile.getPageData({
             removeImports: true,
             removeScripts: true,
             removeAudioSrc: true,
@@ -127,17 +126,20 @@ class SingleFileUtility:
             blockVideos: true,
             blockScripts: true,
             networkTimeout: 60000
-        });
-        return content;
-        """
+        });"""
+        param = {
+            "expression": singleFileJsScript,
+            "awaitPromise": True,
+            "returnByValue": True
+        }
         try:
             try:
                 self.logger.info("getSingleFileHtml: Getting SingleFile Html...")
-                htmlPageData = self.browser.execute_script(singleFileJsScript)
+                htmlPageData = self.seleniumBasicUtils.sendCommand("Runtime.evaluate", param)["result"]["value"]["content"]
             except Exception as e1:
                 try:
                     self.logger.error(f"getSingleFileHtml: Failed to get SingleFile Html, retrying...")
-                    htmlPageData = self.browser.execute_script(singleFileJsScript)
+                    htmlPageData = self.seleniumBasicUtils.sendCommand("Runtime.evaluate", param)["result"]["value"]["content"]
                     self.logger.info("getSingleFileHtml: Successfully Received Page using SingleFile...")
                 except Exception as e2:
                     self.logger.error(f"getSingleFileHtml: Failed to get SingleFile Html, Creating Full Page Screenshot HTML...")
@@ -151,12 +153,27 @@ class SingleFileUtility:
         try:
             self.logger.info("Injecting SingleFile via CDP")
             self.seleniumBasicUtils.browser = self.browser
-            singleFileJs = self.fileUtils.loadSingleFileBundleFile(constants.singleFileBundlePath)
-            param = {
-                "source": singleFileJs,
+            singleFileJs = self.fileUtils.loadSingleFileFile(constants.singleFileBundlePath)
+            initSingleFilePath = self.fileUtils.loadSingleFileFile(constants.initSingleFilePath)
+            script = self.browser.execute_script(f"{singleFileJs} return script;")
+            hookScript = self.browser.execute_script(f"{singleFileJs} return hookScript;")
+
+            params1 = {"enabled": True}
+            params2 = {"ignore": True}
+            params3 = {
+                "source": hookScript,
                 "runImmediately": True
             }
-            self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", param)
+            script += initSingleFilePath
+            params4 = {
+                "source": script,
+                "runImmediately": True
+            }
+            self.seleniumBasicUtils.sendCommand('Page.enable', {})
+            self.seleniumBasicUtils.sendCommand("Page.setBypassCSP", params1)
+            self.seleniumBasicUtils.sendCommand("Security.setIgnoreCertificateErrors", params2)
+            self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params3)
+            self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params4)
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
             raise Exception(f"SingleFileUtility:injectSingleFileViaCDP: {lineNumber}: {e}")

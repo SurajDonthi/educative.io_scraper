@@ -138,7 +138,7 @@ class FileUtility:
         """
     
 
-    def loadSingleFileBundleFile(self, path):
+    def loadSingleFileFile(self, path):
         with open(path, "r") as file:
             content = file.read()
             pattern = r'export\s+\{ script, zipScript, hookScript \};'

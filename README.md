@@ -12,11 +12,12 @@ Disclaimer:
 I want to clarify that I am not accountable for any inappropriate use of this scraper. 
 I developed it solely for research purposes and take no responsibility for its misuse.
 
-Repository Version: v3.7.3 (Recommended)
+Repository Version: v3.7.4 (Recommended)
 Master Branch: v3-master</code></pre>
 ```
 1. Updates Information
--  Injectes SingleFile through Local. Script faster by 10 seconds per topic (v3.7.3)
+-  SingleFile injection script now uses single-file-cli logic instead of custom (v3.7.4) 
+-  Injectes SingleFile through Local. Script faster by 10 seconds per topic, fixes Iframe (v3.7.3)
 -  AutoFixUrl and AutoResume were added (v3.6.5+)
       * AutoFixUrl: The urls text file will be automatically updated based on the last topic URL from the Log File.
         If a manual edit was done on the text file then consider unchecking this option.
