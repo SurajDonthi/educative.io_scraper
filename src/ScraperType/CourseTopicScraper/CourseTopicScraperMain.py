@@ -126,7 +126,6 @@ class CourseTopicScraper:
                 self.logger.info(f"Trying to load webpage {retries} of 2")
                 try:
                     '''Creates new tab and closes the older tab'''
-                    # self.browser.execute_cdp_cmd("Target.createTarget", {"url": "about:blank"})
                     originalWindow = self.browser.current_window_handle
                     self.browser.switch_to.new_window('tab')
                     newWindow = self.browser.current_window_handle
@@ -136,6 +135,7 @@ class CourseTopicScraper:
                     self.browser.close()
 
                     self.browser.switch_to.window(newWindow)
+                    self.singleFileUtils.injectSingleFileViaCDP()
                     self.browser.get(topicUrl)
                 except:
                     self.logger.info("Page Loading Issue, pressing ESC to stop page load")
@@ -163,9 +163,9 @@ class CourseTopicScraper:
             if self.configJson["scrapingMethod"] == "SingleFile-HTML":
                 if self.configJson["fileType"] == "html":
                     self.singleFileUtils.fixAllObjectTags()
-                    self.singleFileUtils.injectImportantScripts()
+                    self.singleFileUtils.injectSingleFileScripts()
                     self.singleFileUtils.makeCodeSelectable()
-                    pageData = self.singleFileUtils.getSingleFileHtml(topicName)
+                    pageData = self.singleFileUtils.getSingleFileHtml()
                 elif self.configJson["fileType"] == "html2pdf":
                     pageData = self.printFileUtils.printPdfAsCdp(topicName)
             if not pageData:
