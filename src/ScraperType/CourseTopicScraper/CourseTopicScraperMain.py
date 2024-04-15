@@ -121,7 +121,12 @@ class CourseTopicScraper:
             self.singleFileUtils.browser = self.browser
             self.screenshotUtils.browser = self.browser
             self.printFileUtils.browser = self.browser
+            courseTopicPath = os.path.join(coursePath, topicName)
+            topicFilePath = os.path.join(courseTopicPath, f"{topicName}.{self.configJson['fileType']}")
+            self.fileUtils.createFolderIfNotExists(courseTopicPath)
+            pageData = None
             retries = 1
+
             while retries < 3:
                 self.logger.info(f"Trying to load webpage {retries} of 2")
                 try:
@@ -156,10 +161,7 @@ class CourseTopicScraper:
             self.showUtils.showSlides()
             self.browserUtils.setWindowSize()
             self.browserUtils.scrollPage()
-            pageData = None
-            courseTopicPath = os.path.join(coursePath, topicName)
-            topicFilePath = os.path.join(courseTopicPath, f"{topicName}.{self.configJson['fileType']}")
-            self.fileUtils.createFolderIfNotExists(courseTopicPath)
+
             if self.configJson["scrapingMethod"] == "SingleFile-HTML":
                 if self.configJson["fileType"] == "html":
                     self.singleFileUtils.fixAllObjectTags()
@@ -188,7 +190,7 @@ class CourseTopicScraper:
                 self.logger.info(f"Downloading Code and Quiz Files if found...")
                 quizComponentIndex = 0
                 codeComponentIndex = 0
-                codeTypes = ["CodeTest", "TabbedCode", "EditorCode", "Code", "WebpackBin", "RunJS"]
+                codeTypes = ["CodeTest", "TabbedCode", "EditorCode", "Code", "WebpackBin", "RunJS", "Sandpack"]
                 quizTypes = ["Quiz", "StructuredQuiz"]
                 for componentIndex, component in enumerate(topicApiContentJson):
                     componentType = component["type"]

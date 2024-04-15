@@ -35,6 +35,8 @@ class CodeUtility:
                 self.downloadRunJS()
             elif "WebpackBin" in component["type"]:
                 self.downloadWebpackBin()
+            elif "Sandpack" in component["type"]:
+                self.downloadSandpack()
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
             raise Exception(f"CodeUtility:downloadCodeFiles: {lineNumber}: {e}")
@@ -212,3 +214,20 @@ class CodeUtility:
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
             raise Exception(f"CodeUtility:downloadRecursivelyFromWebpackBin: {lineNumber}: {e}")
+
+
+    def downloadSandpack(self):
+        try:
+            self.logger.info("Downloading Sandpack...")
+            content = self.component["content"]
+            if "files" in content:
+                for file in content["files"]:
+                    fileName = self.fileUtils.filenameSlugify(file)
+                    if "code" in content["files"][file]:
+                        codeContent = content["files"][file]["code"]
+                        textFilePath = os.path.join(self.codeFolderPath, f"{fileName}.txt")
+                        self.fileUtils.createTextFile(textFilePath, codeContent)
+            self.logger.info(f"Sandpack Downloaded at: {self.codeFolderPath}")
+        except Exception as e:
+            lineNumber = e.__traceback__.tb_lineno
+            raise Exception(f"CodeUtility:downloadSandpack: {lineNumber}: {e}")
