@@ -121,12 +121,16 @@ class CourseTopicScraper:
             self.singleFileUtils.browser = self.browser
             self.screenshotUtils.browser = self.browser
             self.printFileUtils.browser = self.browser
+            courseTopicPath = os.path.join(coursePath, topicName)
+            topicFilePath = os.path.join(courseTopicPath, f"{topicName}.{self.configJson['fileType']}")
+            self.fileUtils.createFolderIfNotExists(courseTopicPath)
+            pageData = None
             retries = 1
+
             while retries < 3:
                 self.logger.info(f"Trying to load webpage {retries} of 2")
                 try:
                     '''Creates new tab and closes the older tab'''
-                    # self.browser.execute_cdp_cmd("Target.createTarget", {"url": "about:blank"})
                     originalWindow = self.browser.current_window_handle
                     self.browser.switch_to.new_window('tab')
                     newWindow = self.browser.current_window_handle
@@ -136,6 +140,7 @@ class CourseTopicScraper:
                     self.browser.close()
 
                     self.browser.switch_to.window(newWindow)
+                    self.singleFileUtils.injectSingleFileViaCDP()
                     self.browser.get(topicUrl)
                 except:
                     self.logger.info("Page Loading Issue, pressing ESC to stop page load")
@@ -156,16 +161,13 @@ class CourseTopicScraper:
             self.showUtils.showSlides()
             self.browserUtils.setWindowSize()
             self.browserUtils.scrollPage()
-            pageData = None
-            courseTopicPath = os.path.join(coursePath, topicName)
-            topicFilePath = os.path.join(courseTopicPath, f"{topicName}.{self.configJson['fileType']}")
-            self.fileUtils.createFolderIfNotExists(courseTopicPath)
+
             if self.configJson["scrapingMethod"] == "SingleFile-HTML":
                 if self.configJson["fileType"] == "html":
                     self.singleFileUtils.fixAllObjectTags()
-                    self.singleFileUtils.injectImportantScripts()
+                    # self.singleFileUtils.injectSingleFileScripts()
                     self.singleFileUtils.makeCodeSelectable()
-                    pageData = self.singleFileUtils.getSingleFileHtml(topicName)
+                    pageData = self.singleFileUtils.getSingleFileHtml()
                 elif self.configJson["fileType"] == "html2pdf":
                     pageData = self.printFileUtils.printPdfAsCdp(topicName)
             if not pageData:
@@ -188,7 +190,7 @@ class CourseTopicScraper:
                 self.logger.info(f"Downloading Code and Quiz Files if found...")
                 quizComponentIndex = 0
                 codeComponentIndex = 0
-                codeTypes = ["CodeTest", "TabbedCode", "EditorCode", "Code", "WebpackBin", "RunJS"]
+                codeTypes = ["CodeTest", "TabbedCode", "EditorCode", "Code", "WebpackBin", "RunJS", "Sandpack"]
                 quizTypes = ["Quiz", "StructuredQuiz"]
                 for componentIndex, component in enumerate(topicApiContentJson):
                     componentType = component["type"]

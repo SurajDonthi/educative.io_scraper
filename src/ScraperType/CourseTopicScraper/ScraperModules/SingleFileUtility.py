@@ -1,5 +1,7 @@
 import os
 
+from src.Common.Constants import constants
+from src.ScraperType.CourseTopicScraper.ScraperModules.SeleniumBasicUtility import SeleniumBasicUtility
 from src.Utility.OSUtility import OSUtility
 from src.Logging.Logger import Logger
 from src.ScraperType.CourseTopicScraper.ScraperModules.ScreenshotUtility import ScreenshotUtility
@@ -15,6 +17,7 @@ class SingleFileUtility:
         self.selectors = self.fileUtils.loadJsonFile(selectorPath)["SingleFileUtility"]
         self.logger = Logger(configJson, "SingleFileUtility").logger
         self.screenshotHtmlUtils = ScreenshotUtility(configJson)
+        self.seleniumBasicUtils = SeleniumBasicUtility(configJson)
 
 
     def fixAllObjectTags(self):
@@ -51,10 +54,10 @@ class SingleFileUtility:
             raise Exception(f"SingleFileUtility:fixAllObjectTags: {lineNumber}: {e}")
 
 
-    def injectImportantScripts(self):
+    def injectSingleFileScripts(self):
         try:
-            self.logger.info("Injecting important scripts")
-            injectImportantScriptsJsScript = """
+            self.logger.info("Injecting SingleFile scripts")
+            injectSingleFileJsScript = """
             function injectScriptToHTML(scriptTag, doc = document) {
                 var targetElement = doc.body || doc.documentElement;
                 targetElement.appendChild(scriptTag.cloneNode(true));
@@ -67,49 +70,25 @@ class SingleFileUtility:
                 });
             }
                              
-            function createScriptTagFromURL(url) {
-                return fetch(url)
-                    .then(response => response.text())
-                    .then(data => {
-                        var scriptElement = document.createElement('script');
-                        scriptElement.type = 'text/javascript';
-                        scriptElement.textContent = data;
-                        return scriptElement;
-                    })
-                    .catch(error => {
-                        console.error('Error loading script:', error);
-                        return null;
-                    });
-            }
+            function createScriptTagFromLocal(data) {
+                    var scriptElement = document.createElement('script');
+                    scriptElement.type = 'text/javascript';
+                    scriptElement.textContent = data;
+                    return scriptElement;
+                }
+                
             window.__define = window.define;
             window.__require = window.require;
             window.define = undefined;
             window.require = undefined;
-            var baseurl = 'https://anilabhadatta.github.io/SingleFile/';
-            var urls = [
-            'lib/single-file-bootstrap.js',
-            'lib/single-file-hooks-frames.js',
-            'lib/single-file-frames.js',
-            'lib/single-file.js'
-            ];
-            var fullUrls = urls.map(url => baseurl + url);
-            
-            for(let i=0; i< fullUrls.length; i++){
-                createScriptTagFromURL(fullUrls[i])
-                    .then(scriptTag => {
-                        if (scriptTag) {
-                            injectScriptToHTML(scriptTag);
-                        }
-                    });
-            }
+        
+            injectScriptToHTML(createScriptTagFromLocal(hookScript));
+            injectScriptToHTML(createScriptTagFromLocal(script));
             """
-            self.browser.execute_script(injectImportantScriptsJsScript)
-            self.osUtils.sleep(5)
-            self.browser.execute_script(injectImportantScriptsJsScript)
-            self.osUtils.sleep(5)
+            self.browser.execute_script(injectSingleFileJsScript)
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
-            raise Exception(f"SingleFileUtility:injectImportantScripts: {lineNumber}: {e}")
+            raise Exception(f"SingleFileUtility:injectSingleFileScripts: {lineNumber}: {e}")
 
 
     def makeCodeSelectable(self):
@@ -133,10 +112,9 @@ class SingleFileUtility:
             raise Exception(f"SingleFileUtility:makeCodeSelectable: {lineNumber}: {e}")
 
 
-    def getSingleFileHtml(self, topicName):
+    def getSingleFileHtml(self):
         htmlPageData = None
-        singleFileJsScript = """
-        const { content, title, filename } = await singlefile.getPageData({
+        singleFileJsScript = """singlefile.getPageData({
             removeImports: true,
             removeScripts: true,
             removeAudioSrc: true,
@@ -148,17 +126,20 @@ class SingleFileUtility:
             blockVideos: true,
             blockScripts: true,
             networkTimeout: 60000
-        });
-        return content;
-        """
+        });"""
+        param = {
+            "expression": singleFileJsScript,
+            "awaitPromise": True,
+            "returnByValue": True
+        }
         try:
             try:
                 self.logger.info("getSingleFileHtml: Getting SingleFile Html...")
-                htmlPageData = self.browser.execute_script(singleFileJsScript)
+                htmlPageData = self.seleniumBasicUtils.sendCommand("Runtime.evaluate", param)["result"]["value"]["content"]
             except Exception as e1:
                 try:
                     self.logger.error(f"getSingleFileHtml: Failed to get SingleFile Html, retrying...")
-                    htmlPageData = self.browser.execute_script(singleFileJsScript)
+                    htmlPageData = self.seleniumBasicUtils.sendCommand("Runtime.evaluate", param)["result"]["value"]["content"]
                     self.logger.info("getSingleFileHtml: Successfully Received Page using SingleFile...")
                 except Exception as e2:
                     self.logger.error(f"getSingleFileHtml: Failed to get SingleFile Html, Creating Full Page Screenshot HTML...")
@@ -166,3 +147,33 @@ class SingleFileUtility:
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
             raise Exception(f"SingleFileUtility:getSingleFileHtml: {lineNumber}: {e}")
+        
+
+    def injectSingleFileViaCDP(self):
+        try:
+            self.logger.info("Injecting SingleFile via CDP")
+            self.seleniumBasicUtils.browser = self.browser
+            singleFileJs = self.fileUtils.loadSingleFileFile(constants.singleFileBundlePath)
+            initSingleFilePath = self.fileUtils.loadSingleFileFile(constants.initSingleFilePath)
+            script = self.browser.execute_script(f"{singleFileJs} return script;")
+            hookScript = self.browser.execute_script(f"{singleFileJs} return hookScript;")
+
+            params1 = {"enabled": True}
+            params2 = {"ignore": True}
+            params3 = {
+                "source": hookScript,
+                "runImmediately": True
+            }
+            script += initSingleFilePath
+            params4 = {
+                "source": script,
+                "runImmediately": True
+            }
+            self.seleniumBasicUtils.sendCommand('Page.enable', {})
+            self.seleniumBasicUtils.sendCommand("Page.setBypassCSP", params1)
+            self.seleniumBasicUtils.sendCommand("Security.setIgnoreCertificateErrors", params2)
+            self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params3)
+            self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params4)
+        except Exception as e:
+            lineNumber = e.__traceback__.tb_lineno
+            raise Exception(f"SingleFileUtility:injectSingleFileViaCDP: {lineNumber}: {e}")

@@ -136,3 +136,11 @@ class FileUtility:
         </body>
         </html>
         """
+    
+
+    def loadSingleFileFile(self, path):
+        with open(path, "r") as file:
+            content = file.read()
+            pattern = r'export\s+\{ script, zipScript, hookScript \};'
+            cleanedScript = re.sub(pattern, '', content)
+            return cleanedScript
