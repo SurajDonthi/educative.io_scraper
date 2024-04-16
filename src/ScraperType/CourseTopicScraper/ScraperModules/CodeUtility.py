@@ -222,10 +222,13 @@ class CodeUtility:
             content = self.component["content"]
             if "files" in content:
                 for file in content["files"]:
-                    fileName = self.fileUtils.filenameSlugify(file)
+                    filePathSplit = file.split("/")
+                    filePathJoined = os.path.join(self.codeFolderPath, *filePathSplit[:-1])
+                    self.fileUtils.createFolderIfNotExists(filePathJoined)
+                    fileName = self.fileUtils.filenameSlugify(filePathSplit[-1])
                     if "code" in content["files"][file]:
                         codeContent = content["files"][file]["code"]
-                        textFilePath = os.path.join(self.codeFolderPath, f"{fileName}.txt")
+                        textFilePath = os.path.join(filePathJoined, f"{fileName}.txt")
                         self.fileUtils.createTextFile(textFilePath, codeContent)
             self.logger.info(f"Sandpack Downloaded at: {self.codeFolderPath}")
         except Exception as e:
