@@ -165,7 +165,7 @@ class CourseTopicScraper:
             if self.configJson["scrapingMethod"] == "SingleFile-HTML":
                 if self.configJson["fileType"] == "html":
                     self.singleFileUtils.fixAllObjectTags()
-                    # self.singleFileUtils.injectSingleFileScripts()
+                    self.singleFileUtils.injectSingleFileScripts()
                     self.singleFileUtils.makeCodeSelectable()
                     pageData = self.singleFileUtils.getSingleFileHtml()
                 elif self.configJson["fileType"] == "html2pdf":

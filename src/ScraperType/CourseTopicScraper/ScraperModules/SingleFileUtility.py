@@ -169,11 +169,16 @@ class SingleFileUtility:
                 "source": script,
                 "runImmediately": True
             }
+            params5 = {
+                "source": singleFileJs,
+                "runImmediately": True
+            }
             self.seleniumBasicUtils.sendCommand('Page.enable', {})
             self.seleniumBasicUtils.sendCommand("Page.setBypassCSP", params1)
             self.seleniumBasicUtils.sendCommand("Security.setIgnoreCertificateErrors", params2)
             self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params3)
             self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params4)
+            self.seleniumBasicUtils.sendCommand("Page.addScriptToEvaluateOnNewDocument", params5)
         except Exception as e:
             lineNumber = e.__traceback__.tb_lineno
             raise Exception(f"SingleFileUtility:injectSingleFileViaCDP: {lineNumber}: {e}")
