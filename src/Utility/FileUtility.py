@@ -82,7 +82,7 @@ class FileUtility:
 
 
     def filenameSlugify(self, filename):
-        filename = slugify(filename, replacements=[['+', 'plus'], ['#', 'sharp']]).replace("-", " ")
+        filename = slugify(filename, replacements=[['+', 'plus'], ['c#', 'csharp'], ['C#', 'csharp']]).replace("-", " ")
         return re.sub(r'[:?|></]', self.replaceFilename, filename)
 
 
