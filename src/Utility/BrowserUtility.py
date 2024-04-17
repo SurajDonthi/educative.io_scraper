@@ -37,7 +37,8 @@ class BrowserUtility:
                 self.browser = Driver(undetectable=True, user_data_dir=self.userDataDir,
                                       binary_location=constants.chromeBinaryPath, headless2=self.configJson["headless"],
                                       proxy=proxy, chromium_arg="--disable-web-security,--allow-running-insecure-content,"
-                                                                "--ignore-certificate-errors-spki-list,--ignore-ssl-errors",
+                                                                "--ignore-certificate-errors-spki-list,--ignore-ssl-errors,"
+                                                                "--disable-site-isolation-trials",
                                       headed=not self.configJson["headless"], driver_version=self.configJson['binaryversion'])
             else:
                 options.add_argument(f'user-data-dir={self.userDataDir}')
