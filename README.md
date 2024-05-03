@@ -12,7 +12,7 @@ Disclaimer:
 I want to clarify that I am not accountable for any inappropriate use of this scraper. 
 I developed it solely for research purposes and take no responsibility for its misuse.
 
-Repository Version: v3.7.9 (Recommended)
+Repository Version: v3.8.0 (Recommended)
 Master Branch: v3-master</code></pre>
 ```
 1. Updates Information
@@ -89,7 +89,7 @@ cd educative.io_scraper
       ```
       <div align="center">
          <figure>
-            <img src="https://github.com/anilabhadatta/educative.io_scraper/assets/48487849/82f550af-083f-41f7-b597-9caf90a80960" style="width: 50%; height:50%;">
+            <img src="https://github.com/anilabhadatta/educative.io_scraper/assets/48487849/8d2fc780-dd82-43b5-8c8c-c58b6c2213b9" style="width: 50%; height:50%;">
             <br>
             <figcaption>Recommeded GUI Settings</figcaption>
          </figure>
