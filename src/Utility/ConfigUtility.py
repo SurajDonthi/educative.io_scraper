@@ -24,7 +24,6 @@ class ConfigUtility:
 
 
     def checkAndResetConfig(self, path, forceReset=False):
-        print("Resetting Config File")
         if path is not constants.commonConfigPath:
             if not self.checkKeys(path, "ScraperConfig"):
                 print("ConfigUtility: Config file is corrupted. Replacing with default common config...")
