@@ -1,4 +1,5 @@
 import configparser
+import os.path
 import shutil
 
 from src.Common.Constants import constants
@@ -13,12 +14,19 @@ class ConfigUtility:
 
 
     def loadConfig(self, path=constants.defaultConfigPath):
+        self.checkAndResetConfig(path)
+        self.config = configparser.ConfigParser()
+        self.config.read(path)
+        if not os.path.exists(self.config['ScraperConfig']["saveDirectory"]):
+            self.checkAndResetConfig(path)
+            self.config.read(path)
+        return self.config
+
+
+    def checkAndResetConfig(self, path):
         if path is not constants.commonConfigPath and not self.checkKeys(path, "ScraperConfig"):
             print("ConfigUtility: Config file is corrupted. Replacing with default common config...")
             shutil.copy(constants.commonConfigPath, path)
-        self.config = configparser.ConfigParser()
-        self.config.read(path)
-        return self.config
 
 
     def updateConfig(self, configJson, sectionName, path=constants.defaultConfigPath):
